@@ -1,10 +1,4 @@
-"""
-Dataset and Vocabulary classes for loading and processing the Flickr8k dataset.
-
-- Vocabulary: builds word↔index mappings from captions
-- FlickrDataset: PyTorch Dataset for image-caption pairs
-- get_data_loaders: creates train/val/test DataLoaders
-"""
+"""Dataset and vocabulary for Flickr8k."""
 
 import os
 import pandas as pd
@@ -19,12 +13,11 @@ import config
 
 
 class Vocabulary:
-    """Maps words to indices and vice versa."""
+    """Maps words <-> indices. Built from caption strings."""
 
     def __init__(self, freq_threshold=2):
         self.freq_threshold = freq_threshold
 
-        # Special tokens (fixed indices)
         self.pad_idx = 0
         self.start_idx = 1
         self.end_idx = 2
@@ -42,13 +35,11 @@ class Vocabulary:
         return len(self.word2idx)
 
     def build_vocabulary(self, captions):
-        """Build vocabulary from a list of caption strings."""
         counter = Counter()
         for caption in captions:
             tokens = self.tokenize(caption)
             counter.update(tokens)
 
-        # Add words that appear at least freq_threshold times
         for word, count in counter.items():
             if count >= self.freq_threshold:
                 idx = len(self.word2idx)
@@ -59,11 +50,9 @@ class Vocabulary:
 
     @staticmethod
     def tokenize(text):
-        """Simple whitespace + lowercase tokenization."""
         return text.lower().strip().split()
 
     def numericalize(self, text):
-        """Convert a caption string to a list of token indices."""
         tokens = self.tokenize(text)
         return (
             [self.start_idx]
@@ -72,7 +61,6 @@ class Vocabulary:
         )
 
     def decode(self, indices):
-        """Convert a list of indices back to a string."""
         words = []
         for idx in indices:
             if isinstance(idx, torch.Tensor):
@@ -86,29 +74,20 @@ class Vocabulary:
 
 
 class FlickrDataset(Dataset):
-    """
-    PyTorch Dataset for Flickr8k image-caption pairs.
-
-    Each item returns:
-        - image: tensor of shape (3, 224, 224)
-        - caption: tensor of token indices
-    """
+    """Loads image-caption pairs for a given split (train/val/test)."""
 
     def __init__(self, captions_file, images_dir, vocab, transform=None, split="train"):
         self.images_dir = images_dir
         self.vocab = vocab
         self.transform = transform
 
-        # Load captions file
         df = pd.read_csv(captions_file)
-        # Columns: image, caption
         df.columns = [c.strip() for c in df.columns]
 
-        # Get unique image names for splitting
         all_images = df["image"].unique().tolist()
         n = len(all_images)
 
-        # Split: 80% train, 10% val, 10% test
+        # 80/10/10 split by image
         train_end = int(0.8 * n)
         val_end = int(0.9 * n)
 
@@ -121,7 +100,6 @@ class FlickrDataset(Dataset):
         else:
             raise ValueError(f"Unknown split: {split}")
 
-        # Filter dataframe to this split
         mask = df["image"].isin(split_images)
         self.df = df[mask].reset_index(drop=True)
 
@@ -132,23 +110,17 @@ class FlickrDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        image_name = row["image"]
-        caption_text = row["caption"]
-
-        # Load and transform image
-        img_path = os.path.join(self.images_dir, image_name)
+        img_path = os.path.join(self.images_dir, row["image"])
         image = Image.open(img_path).convert("RGB")
         if self.transform is not None:
             image = self.transform(image)
 
-        # Numericalize caption
-        caption = torch.tensor(self.vocab.numericalize(caption_text), dtype=torch.long)
-
+        caption = torch.tensor(self.vocab.numericalize(row["caption"]), dtype=torch.long)
         return image, caption
 
 
 class CaptionCollate:
-    """Custom collate function that pads captions to the same length."""
+    """Pads captions to the same length within a batch."""
 
     def __init__(self, pad_idx):
         self.pad_idx = pad_idx
@@ -161,7 +133,6 @@ class CaptionCollate:
 
 
 def get_transforms():
-    """Get image transforms for training and validation."""
     train_transform = T.Compose([
         T.Resize((config.IMAGE_SIZE, config.IMAGE_SIZE)),
         T.RandomHorizontalFlip(p=0.5),
@@ -180,16 +151,9 @@ def get_transforms():
 
 
 def get_data_loaders():
-    """
-    Build vocabulary and create train/val/test DataLoaders.
-
-    Returns:
-        vocab: Vocabulary object
-        train_loader, val_loader, test_loader: DataLoaders
-    """
+    """Build vocab and return (vocab, train_loader, val_loader, test_loader)."""
     print("Loading Flickr8k dataset...")
 
-    # Build vocabulary from ALL captions
     df = pd.read_csv(config.CAPTIONS_FILE)
     df.columns = [c.strip() for c in df.columns]
     all_captions = df["caption"].tolist()
@@ -197,10 +161,8 @@ def get_data_loaders():
     vocab = Vocabulary(freq_threshold=config.FREQ_THRESHOLD)
     vocab.build_vocabulary(all_captions)
 
-    # Transforms
     train_transform, val_transform = get_transforms()
 
-    # Datasets
     train_dataset = FlickrDataset(
         config.CAPTIONS_FILE, config.IMAGES_DIR, vocab,
         transform=train_transform, split="train"
@@ -214,7 +176,6 @@ def get_data_loaders():
         transform=val_transform, split="test"
     )
 
-    # DataLoaders
     collate = CaptionCollate(pad_idx=vocab.pad_idx)
 
     train_loader = DataLoader(
