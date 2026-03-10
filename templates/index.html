@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Caption Transformer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Image Caption Transformer</h1>
+            <p class="subtitle">Upload an image and watch the AI describe it — with attention visualization</p>
+        </header>
+
+        <!-- Upload Area -->
+        <div class="upload-section">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-content">
+                    <span class="drop-icon">+</span>
+                    <p class="drop-text">Drag & drop an image here</p>
+                    <p class="drop-subtext">or click to browse</p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" hidden>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="preview-section" id="previewSection" style="display: none;">
+            <img id="previewImage" class="preview-image" alt="Preview">
+            <button class="generate-btn" id="generateBtn">
+                <span class="btn-text">Generate Caption</span>
+                <span class="btn-loading" style="display: none;">
+                    <span class="spinner"></span> Analyzing...
+                </span>
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <div class="caption-card">
+                <h2>Generated Caption</h2>
+                <p class="caption-text" id="captionText"></p>
+            </div>
+
+            <div class="attention-card">
+                <h2>Attention Visualization</h2>
+                <p class="attention-desc">Where the model looked when generating each word</p>
+                <img id="attentionImage" class="attention-image" alt="Attention Heatmap">
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built with PyTorch • ResNet-50 + Transformer Decoder • Trained on Flickr8k</p>
+        </footer>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+        const generateBtn = document.getElementById('generateBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const captionText = document.getElementById('captionText');
+        const attentionImage = document.getElementById('attentionImage');
+
+        let selectedFile = null;
+
+        // Drop zone events
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewSection.style.display = 'flex';
+                resultsSection.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        generateBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            const btnText = generateBtn.querySelector('.btn-text');
+            const btnLoading = generateBtn.querySelector('.btn-loading');
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-flex';
+            generateBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            try {
+                const response = await fetch('/caption', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    captionText.textContent = data.caption;
+                    if (data.attention_image) {
+                        attentionImage.src = 'data:image/png;base64,' + data.attention_image;
+                    }
+                    resultsSection.style.display = 'block';
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (err) {
+                alert('Error connecting to the server: ' + err.message);
+            }
+
+            btnText.style.display = 'inline';
+            btnLoading.style.display = 'none';
+            generateBtn.disabled = false;
+        });
+    </script>
+</body>
+
+</html>

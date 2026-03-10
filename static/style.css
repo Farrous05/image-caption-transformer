@@ -1,0 +1,287 @@
+/* ═══════════════════════════════════════════════════════════
+   Image Caption Transformer — Web Demo Styles
+   Dark theme with glassmorphism and smooth animations
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+    --bg-primary: #0a0a1a;
+    --bg-secondary: #12122a;
+    --bg-card: rgba(25, 25, 60, 0.6);
+    --border-color: rgba(100, 100, 255, 0.15);
+    --text-primary: #e8e8f0;
+    --text-secondary: #a0a0c0;
+    --accent: #6c63ff;
+    --accent-bright: #8b83ff;
+    --accent-glow: rgba(108, 99, 255, 0.3);
+    --success: #4ecdc4;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(108, 99, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(78, 205, 196, 0.06) 0%, transparent 50%);
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+}
+
+/* ─── Header ──────────────────────────────────────────── */
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeInDown 0.6s ease;
+}
+
+.header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--text-primary), var(--accent-bright));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+}
+
+/* ─── Drop Zone ───────────────────────────────────────── */
+
+.upload-section {
+    animation: fadeIn 0.8s ease;
+}
+
+.drop-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(108, 99, 255, 0.08);
+    box-shadow: 0 0 30px var(--accent-glow);
+    transform: translateY(-2px);
+}
+
+.drop-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--accent);
+    font-weight: 300;
+}
+
+.drop-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+}
+
+.drop-subtext {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* ─── Preview ─────────────────────────────────────────── */
+
+.preview-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    animation: fadeIn 0.5s ease;
+}
+
+.preview-image {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    object-fit: contain;
+}
+
+.generate-btn {
+    padding: 0.9rem 2.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    font-family: var(--font);
+    color: white;
+    background: linear-gradient(135deg, var(--accent), #5a52e0);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+.generate-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px var(--accent-glow);
+}
+
+.generate-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.btn-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* ─── Results ─────────────────────────────────────────── */
+
+.results-section {
+    margin-top: 2.5rem;
+    animation: fadeInUp 0.6s ease;
+}
+
+.caption-card,
+.attention-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.caption-card h2,
+.attention-card h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    color: var(--accent-bright);
+}
+
+.caption-text {
+    font-size: 1.3rem;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--text-primary);
+    font-style: italic;
+    padding: 1rem;
+    background: rgba(108, 99, 255, 0.06);
+    border-radius: 10px;
+    border-left: 3px solid var(--accent);
+}
+
+.attention-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.attention-image {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Footer ──────────────────────────────────────────── */
+
+.footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+/* ─── Animations ──────────────────────────────────────── */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ─── Responsive ──────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .header h1 {
+        font-size: 1.6rem;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    .caption-text {
+        font-size: 1.1rem;
+    }
+}
