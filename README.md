@@ -158,8 +158,6 @@ While investigating the low scores, several other issues were found and fixed:
 - **`--debug` flag was declared but never used** — now limits training to 5 batches/epoch for smoke testing
 - **No weight decay** — added `weight_decay=1e-5` to Adam optimizer for regularization
 - **No early stopping** — added `--patience` flag (default 5 epochs) to stop training when validation loss plateaus
-- **Missing `pandas` in requirements.txt** — added it and pinned all dependency versions
-- **No tests** — added 9 unit tests covering vocabulary, encoder, decoder, and full model
 - **No error analysis** — added `error_analysis.py` showing best/worst predictions and BLEU-by-caption-length breakdown
 
 ## Reproducibility
